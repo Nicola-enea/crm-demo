@@ -1,0 +1,129 @@
+
+{% extends "base.html" %}
+{% set active = "bookings" %}
+{% set page_title = "Prenotazioni" %}
+{% set page_subtitle = "Crea, filtra e gestisci stato" %}
+{% block content %}
+
+<div class="card span-12" style="margin-bottom:16px;">
+  <div class="hd">
+    <div>
+      <div style="font-weight:900;">Nuova prenotazione</div>
+      <div class="muted" style="font-size:12px; margin-top:4px;">Associa la prenotazione ad un cliente</div>
+    </div>
+  </div>
+  <div class="bd">
+    <form method="POST" action="/bookings/new">
+      <div class="form-grid">
+        <div class="fg-6">
+          <label>Cliente</label>
+          <select name="client_id" required>
+            {% for c in clients_list %}
+              <option value="{{ c['id'] }}">{{ c['name'] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg-3">
+          <label>Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div class="fg-3">
+          <label>Ora</label>
+          <input type="time" name="time" required>
+        </div>
+        <div class="fg-6">
+          <label>Servizio</label>
+          <input name="service" placeholder="Es. Consulenza, Onboarding..." required>
+        </div>
+        <div class="fg-3">
+          <label>Importo (€)</label>
+          <input name="amount" type="number" step="0.01" required>
+        </div>
+        <div class="fg-3">
+          <label>Stato</label>
+          <select name="status">
+            <option>Confermata</option>
+            <option>In attesa</option>
+            <option>Annullata</option>
+          </select>
+        </div>
+        <div class="fg-12">
+          <label>Note</label>
+          <textarea name="notes"></textarea>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" type="submit"><i class="fa-solid fa-plus"></i> Crea prenotazione</button>
+        <a class="btn btn-ghost" href="/calendar"><i class="fa-solid fa-calendar-days"></i> Calendario</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card span-12">
+  <div class="hd">
+    <div>
+      <div style="font-weight:900;">Elenco prenotazioni</div>
+      <div class="muted" style="font-size:12px; margin-top:4px;">Ricerca per cliente o servizio • Cambia stato</div>
+    </div>
+  </div>
+  <div class="bd">
+    <form class="row" method="GET" action="/bookings" style="margin-bottom:10px;">
+      <div style="flex:1; min-width:220px;">
+        <label>Ricerca</label>
+        <input name="q" value="{{ q }}" placeholder="Cliente o servizio...">
+      </div>
+      <div style="min-width:180px;">
+        <label>Stato</label>
+        <select name="status">
+          <option value="">Tutti</option>
+          <option value="Confermata" {{ 'selected' if status=='Confermata' else '' }}>Confermata</option>
+          <option value="In attesa" {{ 'selected' if status=='In attesa' else '' }}>In attesa</option>
+          <option value="Annullata" {{ 'selected' if status=='Annullata' else '' }}>Annullata</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end;">
+        <button class="btn btn-ghost" type="submit"><i class="fa-solid fa-filter"></i> Filtra</button>
+      </div>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th><th>Data</th><th>Ora</th><th>Servizio</th><th>Importo</th><th>Stato</th><th style="width:160px;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+          <tr>
+            <td style="font-weight:800;">{{ b["client_name"] or "-" }}</td>
+            <td>{{ b["date"] }}</td>
+            <td>{{ b["time"] }}</td>
+            <td>{{ b["service"] }}</td>
+            <td style="font-weight:900;">€ {{ "%.0f"|format(b["amount"] or 0) }}</td>
+            <td>
+              {% if b["status"] == "Confermata" %}<span class="badge b-active">Confermata</span>{% endif %}
+              {% if b["status"] == "In attesa" %}<span class="badge b-wait">In attesa</span>{% endif %}
+              {% if b["status"] == "Annullata" %}<span class="badge b-cancel">Annullata</span>{% endif %}
+            </td>
+            <td>
+              <form method="POST" action="/bookings/{{ b['id'] }}/status" style="display:inline;">
+                <input type="hidden" name="status" value="{% if b['status']=='Confermata' %}In attesa{% elif b['status']=='In attesa' %}Annullata{% else %}Confermata{% endif %}">
+                <button class="btn btn-ghost mini" type="submit" title="Cambia stato">
+                  <i class="fa-solid fa-arrow-rotate-right"></i>
+                </button>
+              </form>
+              <form method="POST" action="/bookings/{{ b['id'] }}/delete" style="display:inline;" onsubmit="return confirmDelete('Eliminare questa prenotazione?');">
+                <button class="btn danger-btn mini" type="submit" title="Elimina">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

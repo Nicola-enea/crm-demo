@@ -1,0 +1,56 @@
+
+{% extends "base.html" %}
+{% set active = "calendar" %}
+{% set page_title = "Calendario" %}
+{% set page_subtitle = "Vista mensile prenotazioni (semplice e chiara)" %}
+{% block content %}
+
+<div class="card span-12">
+  <div class="hd">
+    <div>
+      <div style="font-weight:900;">{{ month_name }} {{ year }}</div>
+      <div class="muted" style="font-size:12px; margin-top:4px;">Clicca su Prenotazioni per gestire</div>
+    </div>
+    <div class="row">
+      <a class="btn btn-ghost mini" href="/calendar?y={{ year }}&m={{ month-1 if month>1 else 12 }}"><i class="fa-solid fa-chevron-left"></i></a>
+      <a class="btn btn-ghost mini" href="/calendar?y={{ year }}&m={{ month+1 if month<12 else 1 }}"><i class="fa-solid fa-chevron-right"></i></a>
+      <a class="btn mini" href="/bookings"><i class="fa-solid fa-calendar-check"></i> Prenotazioni</a>
+    </div>
+  </div>
+  <div class="bd">
+    <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:10px;">
+      {% for d in ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"] %}
+        <div class="muted" style="font-weight:800; font-size:12px; padding:6px 4px;">{{ d }}</div>
+      {% endfor %}
+
+      {% for week in cal %}
+        {% for day in week %}
+          <div class="card" style="box-shadow:none; border-radius:18px; padding:10px; min-height:110px;">
+            {% if day == 0 %}
+              <div class="muted"> </div>
+            {% else %}
+              {% set ds = "%04d-%02d-%02d"|format(year, month, day) %}
+              <div class="row" style="justify-content:space-between;">
+                <div style="font-weight:900;">{{ day }}</div>
+                <div class="muted" style="font-size:12px;">{% if by_day.get(ds) %}{{ by_day.get(ds)|length }}{% endif %}</div>
+              </div>
+              <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+                {% for b in (by_day.get(ds) or [])[:2] %}
+                  <div class="pill" style="justify-content:space-between;">
+                    <span style="font-size:12px; font-weight:800;">{{ b["time"] }}</span>
+                    <span class="muted" style="font-size:12px;">{{ b["client_name"] }}</span>
+                  </div>
+                {% endfor %}
+                {% if (by_day.get(ds) or [])|length > 2 %}
+                  <div class="muted" style="font-size:12px;">+{{ (by_day.get(ds)|length) - 2 }} altre</div>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

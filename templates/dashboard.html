@@ -1,0 +1,220 @@
+
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+{% set page_title = "Dashboard" %}
+{% set page_subtitle = "Panoramica veloce • KPI, grafici e prenotazioni" %}
+{% block content %}
+
+<div class="grid">
+  <div class="card span-4">
+    <div class="hd">
+      <div class="kpi">
+        <div class="label">Clienti Totali</div>
+        <div class="value">{{ totale }}</div>
+        <div class="sub">Database clienti</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-users"></i></div>
+    </div>
+    <div class="bd muted">Crescita e pipeline gestite in modo rapido.</div>
+  </div>
+
+  <div class="card span-4">
+    <div class="hd">
+      <div class="kpi">
+        <div class="label">Clienti Attivi</div>
+        <div class="value">{{ attivi }}</div>
+        <div class="sub">Clienti in corso</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-circle-check"></i></div>
+    </div>
+    <div class="bd muted">Monitoraggio stato clienti (Lead/Attivo/Perso).</div>
+  </div>
+
+  <div class="card span-4">
+    <div class="hd">
+      <div class="kpi">
+        <div class="label">Revenue Totale</div>
+        <div class="value">€ {{ "%.0f"|format(revenue) }}</div>
+        <div class="sub">Valore opportunità</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-coins"></i></div>
+    </div>
+    <div class="bd muted">Somma dei valori associati ai clienti.</div>
+  </div>
+
+  <div class="card span-8">
+    <div class="hd">
+      <div>
+        <div style="font-weight:800; letter-spacing:-0.3px;">Andamento Revenue (ultimi mesi)</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Grafico con gradiente stile SaaS</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-chart-column"></i> <span class="muted" style="font-size:12px;">Chart.js</span></div>
+    </div>
+    <div class="bd">
+      <div style="height:300px;">
+        <canvas id="revChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span-4">
+    <div class="hd">
+      <div>
+        <div style="font-weight:800; letter-spacing:-0.3px;">Distribuzione Status</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Lead / Attivo / Perso</div>
+      </div>
+      <div class="pill"><i class="fa-solid fa-chart-pie"></i></div>
+    </div>
+    <div class="bd">
+      <div style="height:300px;">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:800; letter-spacing:-0.3px;">Prenotazioni in arrivo</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Le prossime 6 prenotazioni</div>
+      </div>
+      <a class="link" href="/bookings">Vedi tutte</a>
+    </div>
+    <div class="bd">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th><th>Data</th><th>Ora</th><th>Servizio</th><th>Stato</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in prenotazioni %}
+            <tr>
+              <td>{{ p["client_name"] if p["client_name"] is defined else "" }}</td>
+              <td>{{ p["date"] }}</td>
+              <td>{{ p["time"] }}</td>
+              <td>{{ p["service"] }}</td>
+              <td>
+                {% set st = p["status"] %}
+                {% if st == "Confermata" %}<span class="badge b-active">Confermata</span>{% endif %}
+                {% if st == "In attesa" %}<span class="badge b-wait">In attesa</span>{% endif %}
+                {% if st == "Annullata" %}<span class="badge b-cancel">Annullata</span>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:800; letter-spacing:-0.3px;">Task rapidi</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">To‑do interno per demo</div>
+      </div>
+      <a class="link" href="/tasks">Gestisci</a>
+    </div>
+    <div class="bd">
+      <table>
+        <thead>
+          <tr><th>Task</th><th>Scadenza</th><th>Priorità</th><th>Stato</th></tr>
+        </thead>
+        <tbody>
+          {% for t in tasks %}
+            <tr>
+              <td>{{ t["title"] }}</td>
+              <td>{{ t["due_date"] }}</td>
+              <td><span class="badge {% if t['priority']=='Alta' %}b-cancel{% elif t['priority']=='Media' %}b-wait{% else %}b-lead{% endif %}">{{ t["priority"] }}</span></td>
+              <td>
+                {% if t["done"] == 1 %}
+                  <span class="badge b-active">Completato</span>
+                {% else %}
+                  <span class="badge b-wait">Aperto</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function loadCharts(){
+    const res = await fetch('/api/charts/overview');
+    const data = await res.json();
+
+    const root = getComputedStyle(document.documentElement);
+    const primary = root.getPropertyValue('--primary').trim();
+    const primary2 = root.getPropertyValue('--primary2').trim();
+
+    // Revenue chart (line with gradient)
+    const ctx = document.getElementById('revChart').getContext('2d');
+    const grad = ctx.createLinearGradient(0,0,0,300);
+    grad.addColorStop(0, primary2 + "cc");
+    grad.addColorStop(1, primary + "00");
+
+    const labels = (data.rev_month || []).map(x => x.m);
+    const values = (data.rev_month || []).map(x => x.v);
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Revenue',
+          data: values,
+          borderColor: primary,
+          backgroundColor: grad,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ grid:{ display:false } },
+          y:{ grid:{ color: 'rgba(148,163,184,0.18)' } }
+        }
+      }
+    });
+
+    // Status chart (doughnut)
+    const sctx = document.getElementById('statusChart').getContext('2d');
+    const s = data.status || {};
+    const sLabels = Object.keys(s);
+    const sVals = Object.values(s);
+    new Chart(sctx, {
+      type: 'doughnut',
+      data: {
+        labels: sLabels,
+        datasets: [{
+          data: sVals,
+          borderWidth: 0,
+          backgroundColor: [
+            primary,
+            '#22c55e',
+            '#ef4444'
+          ]
+        }]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout: '70%',
+        plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, usePointStyle:true } } }
+      }
+    });
+  }
+  loadCharts();
+</script>
+{% endblock %}

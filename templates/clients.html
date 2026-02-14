@@ -1,0 +1,87 @@
+
+{% extends "base.html" %}
+{% set active = "clients" %}
+{% set page_title = "Clienti" %}
+{% set page_subtitle = "Ricerca, filtri, dettaglio e modifica" %}
+{% block content %}
+
+<div class="card span-12" style="margin-bottom:16px;">
+  <div class="hd">
+    <div>
+      <div style="font-weight:800;">Lista Clienti</div>
+      <div class="muted" style="font-size:12px; margin-top:4px;">Filtra per stato e priorità • Ricerca rapida</div>
+    </div>
+    <a class="btn mini" href="/clients/new"><i class="fa-solid fa-plus"></i> Nuovo Cliente</a>
+  </div>
+  <div class="bd">
+    <form class="row" method="GET" action="/clients">
+      <div style="flex:1; min-width:220px;">
+        <label>Ricerca</label>
+        <input name="q" value="{{ q }}" placeholder="Nome, email o telefono...">
+      </div>
+      <div style="min-width:180px;">
+        <label>Stato</label>
+        <select name="status">
+          <option value="">Tutti</option>
+          <option value="Lead" {{ 'selected' if status=='Lead' else '' }}>Lead</option>
+          <option value="Attivo" {{ 'selected' if status=='Attivo' else '' }}>Attivo</option>
+          <option value="Perso" {{ 'selected' if status=='Perso' else '' }}>Perso</option>
+        </select>
+      </div>
+      <div style="min-width:180px;">
+        <label>Priorità</label>
+        <select name="priority">
+          <option value="">Tutte</option>
+          <option value="Alta" {{ 'selected' if priority=='Alta' else '' }}>Alta</option>
+          <option value="Media" {{ 'selected' if priority=='Media' else '' }}>Media</option>
+          <option value="Bassa" {{ 'selected' if priority=='Bassa' else '' }}>Bassa</option>
+        </select>
+      </div>
+      <div style="align-self:flex-end;">
+        <button class="btn btn-ghost" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Filtra</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card span-12">
+  <div class="bd">
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th><th>Stato</th><th>Priorità</th><th>Fonte</th><th>Valore</th><th>Follow‑up</th><th style="width:180px;">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in clients %}
+          <tr>
+            <td>
+              <div style="font-weight:800;">{{ c["name"] }}</div>
+              <div class="muted" style="font-size:12px;">{{ c["email"] }} • {{ c["phone"] }}</div>
+            </td>
+            <td>
+              {% if c["status"] == "Lead" %}<span class="badge b-lead">Lead</span>{% endif %}
+              {% if c["status"] == "Attivo" %}<span class="badge b-active">Attivo</span>{% endif %}
+              {% if c["status"] == "Perso" %}<span class="badge b-lost">Perso</span>{% endif %}
+            </td>
+            <td>
+              <span class="badge {% if c['priority']=='Alta' %}b-cancel{% elif c['priority']=='Media' %}b-wait{% else %}b-lead{% endif %}">{{ c["priority"] }}</span>
+            </td>
+            <td class="muted">{{ c["source"] }}</td>
+            <td style="font-weight:800;">€ {{ "%.0f"|format(c["value"] or 0) }}</td>
+            <td class="muted">{{ c["next_followup"] or "-" }}</td>
+            <td>
+              <a class="btn btn-ghost mini" href="/clients/{{ c['id'] }}"><i class="fa-solid fa-eye"></i></a>
+              <a class="btn btn-ghost mini" href="/clients/{{ c['id'] }}/edit"><i class="fa-solid fa-pen"></i></a>
+              <form method="POST" action="/clients/{{ c['id'] }}/delete" style="display:inline;" onsubmit="return confirmDelete('Eliminare questo cliente?');">
+                <button class="btn danger-btn mini" type="submit"><i class="fa-solid fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

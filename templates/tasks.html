@@ -1,0 +1,75 @@
+
+{% extends "base.html" %}
+{% set active = "tasks" %}
+{% set page_title = "Task" %}
+{% set page_subtitle = "To‑do interno • utile per demo Fiverr" %}
+{% block content %}
+
+<div class="grid">
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900;">Nuovo task</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Aggiungi un task rapido</div>
+      </div>
+    </div>
+    <div class="bd">
+      <form method="POST">
+        <label>Titolo</label>
+        <input name="title" placeholder="Es. Richiamare cliente, inviare preventivo..." required>
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="fg-6">
+            <label>Scadenza</label>
+            <input type="date" name="due_date" required>
+          </div>
+          <div class="fg-6">
+            <label>Priorità</label>
+            <select name="priority">
+              <option>Alta</option>
+              <option selected>Media</option>
+              <option>Bassa</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn" style="margin-top:12px;"><i class="fa-solid fa-plus"></i> Crea task</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900;">Lista task</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Spunta i task completati</div>
+      </div>
+    </div>
+    <div class="bd">
+      <table>
+        <thead><tr><th>Task</th><th>Scadenza</th><th>Priorità</th><th>Azioni</th></tr></thead>
+        <tbody>
+          {% for t in tasks %}
+            <tr>
+              <td>
+                <div style="font-weight:800; {% if t['done']==1 %}text-decoration:line-through; opacity:.75;{% endif %}">
+                  {{ t["title"] }}
+                </div>
+              </td>
+              <td>{{ t["due_date"] }}</td>
+              <td><span class="badge {% if t['priority']=='Alta' %}b-cancel{% elif t['priority']=='Media' %}b-wait{% else %}b-lead{% endif %}">{{ t["priority"] }}</span></td>
+              <td>
+                <form method="POST" action="/tasks/{{ t['id'] }}/toggle" style="display:inline;">
+                  <button class="btn btn-ghost mini" type="submit"><i class="fa-solid fa-check"></i></button>
+                </form>
+                <form method="POST" action="/tasks/{{ t['id'] }}/delete" style="display:inline;" onsubmit="return confirmDelete('Eliminare questo task?');">
+                  <button class="btn danger-btn mini" type="submit"><i class="fa-solid fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

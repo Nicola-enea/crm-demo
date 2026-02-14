@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="it" data-theme="{{ session.get('theme','light') }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title or "CRM SaaS" }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>CRM SaaS</h1>
+          <div class="muted" style="font-size:12px; margin-top:2px;">Demo Fiverr • Italiano</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="{{ 'active' if active=='dashboard' else '' }}" href="/dashboard"><span class="ico"><i class="fa-solid fa-chart-line"></i></span>Dashboard</a>
+        <a class="{{ 'active' if active=='clients' else '' }}" href="/clients"><span class="ico"><i class="fa-solid fa-users"></i></span>Clienti</a>
+        <a class="{{ 'active' if active=='bookings' else '' }}" href="/bookings"><span class="ico"><i class="fa-solid fa-calendar-check"></i></span>Prenotazioni</a>
+        <a class="{{ 'active' if active=='tasks' else '' }}" href="/tasks"><span class="ico"><i class="fa-solid fa-list-check"></i></span>Task</a>
+        <a class="{{ 'active' if active=='calendar' else '' }}" href="/calendar"><span class="ico"><i class="fa-solid fa-calendar-days"></i></span>Calendario</a>
+        <a href="/logout"><span class="ico"><i class="fa-solid fa-right-from-bracket"></i></span>Logout</a>
+      </nav>
+
+      <div style="margin-top:14px; padding:12px;">
+        <div class="pill">
+          <i class="fa-solid fa-user"></i>
+          <span style="font-weight:700;">{{ session.get('user','') }}</span>
+        </div>
+        <form method="POST" action="/theme/toggle" style="margin-top:10px;">
+          <button class="btn btn-ghost mini" type="submit" style="width:100%; display:flex; justify-content:center; gap:8px; align-items:center;">
+            <i class="fa-solid fa-circle-half-stroke"></i> Tema Light/Dark
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="title">
+          <h2>{{ page_title }}</h2>
+          <p>{{ page_subtitle }}</p>
+        </div>
+        <div class="actions">
+          <div class="chip">
+            <i class="fa-solid fa-sparkles" style="color: var(--primary);"></i>
+            <span style="font-weight:700;">Demo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="msg {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

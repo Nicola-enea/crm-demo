@@ -1,0 +1,92 @@
+
+{% extends "base.html" %}
+{% set active = "clients" %}
+{% set page_title = "Dettaglio Cliente" %}
+{% set page_subtitle = "Dati, note e storico prenotazioni" %}
+{% block content %}
+
+<div class="grid">
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900; font-size:18px;">{{ client["name"] }}</div>
+        <div class="muted" style="margin-top:4px;">{{ client["email"] }} • {{ client["phone"] }}</div>
+      </div>
+      <div class="row">
+        <a class="btn btn-ghost mini" href="/clients/{{ client['id'] }}/edit"><i class="fa-solid fa-pen"></i></a>
+        <form method="POST" action="/clients/{{ client['id'] }}/delete" style="display:inline;" onsubmit="return confirmDelete('Eliminare questo cliente e le sue prenotazioni?');">
+          <button class="btn danger-btn mini" type="submit"><i class="fa-solid fa-trash"></i></button>
+        </form>
+      </div>
+    </div>
+    <div class="bd">
+      <div class="row">
+        <div>
+          <div class="muted" style="font-size:12px;">Stato</div>
+          <div style="margin-top:6px;">
+            {% if client["status"] == "Lead" %}<span class="badge b-lead">Lead</span>{% endif %}
+            {% if client["status"] == "Attivo" %}<span class="badge b-active">Attivo</span>{% endif %}
+            {% if client["status"] == "Perso" %}<span class="badge b-lost">Perso</span>{% endif %}
+          </div>
+        </div>
+        <div>
+          <div class="muted" style="font-size:12px;">Priorità</div>
+          <div style="margin-top:6px;">
+            <span class="badge {% if client['priority']=='Alta' %}b-cancel{% elif client['priority']=='Media' %}b-wait{% else %}b-lead{% endif %}">{{ client["priority"] }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="muted" style="font-size:12px;">Valore</div>
+          <div style="margin-top:6px; font-weight:900;">€ {{ "%.0f"|format(client["value"] or 0) }}</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="muted" style="font-size:12px;">Note</div>
+        <div style="margin-top:6px; line-height:1.4;">{{ client["notes"] or "-" }}</div>
+      </div>
+
+      <div style="margin-top:14px;" class="row">
+        <div class="pill"><i class="fa-solid fa-bullseye"></i> Fonte: <b style="margin-left:6px;">{{ client["source"] }}</b></div>
+        <div class="pill"><i class="fa-solid fa-phone"></i> Ultimo contatto: <b style="margin-left:6px;">{{ client["last_contact"] or "-" }}</b></div>
+        <div class="pill"><i class="fa-solid fa-flag-checkered"></i> Follow‑up: <b style="margin-left:6px;">{{ client["next_followup"] or "-" }}</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span-6">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900;">Prenotazioni cliente</div>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Storico (max 50)</div>
+      </div>
+      <a class="link" href="/bookings">Vai alle prenotazioni</a>
+    </div>
+    <div class="bd">
+      <table>
+        <thead><tr><th>Data</th><th>Ora</th><th>Servizio</th><th>Stato</th><th>Importo</th></tr></thead>
+        <tbody>
+          {% for b in bookings %}
+            <tr>
+              <td>{{ b["date"] }}</td>
+              <td>{{ b["time"] }}</td>
+              <td>{{ b["service"] }}</td>
+              <td>
+                {% if b["status"] == "Confermata" %}<span class="badge b-active">Confermata</span>{% endif %}
+                {% if b["status"] == "In attesa" %}<span class="badge b-wait">In attesa</span>{% endif %}
+                {% if b["status"] == "Annullata" %}<span class="badge b-cancel">Annullata</span>{% endif %}
+              </td>
+              <td style="font-weight:900;">€ {{ "%.0f"|format(b["amount"] or 0) }}</td>
+            </tr>
+          {% endfor %}
+          {% if bookings|length == 0 %}
+            <tr><td colspan="5" class="muted">Nessuna prenotazione per questo cliente.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

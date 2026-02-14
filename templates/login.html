@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login • CRM SaaS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    .login-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .login-card{ width:380px; }
+    .login-card .bd{ padding:18px 16px 16px; }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <div class="card login-card">
+      <div class="hd">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="logo" style="width:34px; height:34px; border-radius:14px;"></div>
+            <div>
+              <div style="font-weight:900; font-size:18px; letter-spacing:-0.4px;">CRM SaaS</div>
+              <div class="muted" style="font-size:12px;">Demo per Fiverr • Accesso rapido</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bd">
+        <form method="POST">
+          <label>Username</label>
+          <input name="username" value="demo1" required>
+          <label>Password</label>
+          <input type="password" name="password" value="demo123" required>
+          <button class="btn" style="width:100%; margin-top:8px;">Login</button>
+        </form>
+
+        <div class="muted" style="margin-top:10px; font-size:12px;">
+          Suggerimento: se hai un vecchio <b>database.db</b>, eliminalo per ripartire pulito.
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div style="margin-top:12px;">
+              {% for category, message in messages %}
+                <div class="msg {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
